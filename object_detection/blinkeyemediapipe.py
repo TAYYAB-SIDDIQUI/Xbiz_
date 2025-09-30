@@ -10,7 +10,7 @@ def calculate_ear(upper, lower, left, right):
 
 # Threshold for EAR
 EAR_THRESHOLD = 0.30
-CONSEC_FRAMES = 3
+CONSEC_FRAMES = 10
 
 blink_counter = 0
 total_blinks = 0
@@ -24,6 +24,7 @@ cap = cv2.VideoCapture(0)
 
 while True:
     ret, frame = cap.read()
+    frame=cv2.flip(frame,1)
     if not ret:
         break
 

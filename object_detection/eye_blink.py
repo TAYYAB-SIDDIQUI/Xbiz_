@@ -37,7 +37,7 @@ while True:
     ret, frame = cap.read()
     if not ret:
         break
-
+    frame=cv2.flip(frame,1)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     faces = detector(gray, 0)
@@ -72,7 +72,6 @@ while True:
         # Display blink count
         cv2.putText(frame, f"Blinks: {total_blinks}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-
     cv2.imshow("Blink Detection", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
