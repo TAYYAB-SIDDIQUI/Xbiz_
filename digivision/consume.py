@@ -5,7 +5,7 @@ import os
 
 # API URL
 def api_consume(img_path):
-    url = "https://bankdevapi.digivision.ai/digivision/ai/rawtext-extraction"
+    url = "_____"
 
     # Request headers
     headers = {
