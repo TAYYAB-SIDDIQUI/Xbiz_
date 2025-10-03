@@ -1,0 +1,5 @@
+myenv/
+yolov8s.pt
+best.pt
+shape_predictor_68_face_landmarks.dat
+tayyab_fake_real_face (1).pkl
