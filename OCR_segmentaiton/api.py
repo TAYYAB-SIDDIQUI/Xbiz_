@@ -35,8 +35,8 @@ with open("db/userinfo.json","r", encoding="utf-8") as f:
 
 with open("db/enc_info.json","w",encoding="utf-8") as ef:
     hashing={"user":user["user"],"password":generate_password_hash(user["password"])}
-    print(hashing)
     json.dump(hashing,ef,indent=2,ensure_ascii=False)
+
 def require_auth(f):
     @wraps(f)
     def decorated(*args,**kwargs):
@@ -48,6 +48,7 @@ def require_auth(f):
             return jsonify({"msg":"Bad username and password"}),401
         return f(*args,**kwargs)
     return decorated
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -82,14 +83,16 @@ def data(path,output_img="output.png"):
     img_path=straight.rotate_image_auto(path,angle)
     text_input=text_extract.text_extraction(img_path)
     text_box=text_input[0]["rec_polys"]
+
     text_boxes=np.array(text_input[0]["rec_polys"]).tolist()
     if angle and img_path and text_input and text_boxes:
         remark="Success"
     else:
         remark="failed"
+    
     cbox.paddle_bboxes(img_path,text_input[0]["rec_texts"],text_box,output_img)
     document_type=match.detect_document_type(text_input[0]["rec_texts"])
-    print(document_type)
+
     if document_type=="aadhaar":
         document_sides=doc_sides.detect_document_sides(text_input[0]["rec_texts"],document_type)
         aadhaar_front_data=doc_fields.extract_adhaar_text(document_sides["front"])
@@ -117,6 +120,7 @@ def data(path,output_img="output.png"):
         response={"document_type":document_type,"ocr_result":[{"front":bank_front_data,"back":document_sides["back"],"boundingbox":text_boxes}],"txn_id":t_id,"remark":remark}
     elif document_type=="other":
         response={"document_type":"other","ocr_result":[{"raw_text":text_input[0]["rec_texts"],"boundingbox":text_boxes}]}
+
         try:
             with open(json_undetected_file, 'r') as f:
                 content = f.read().strip()
@@ -129,7 +133,6 @@ def data(path,output_img="output.png"):
 
         data.append(response)
 
-        # Save updated list back to file
         with open(json_undetected_file, 'w') as f:
             json.dump(data, f, indent=2,ensure_ascii=False)
         return response
@@ -148,10 +151,11 @@ def data(path,output_img="output.png"):
 
         data.append(response)
 
-        # Save updated list back to file
+        
         with open(json_undetected_file, 'w') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         return response
+    
     if document_type!="other":
         try:
             with open(json_detected_file, 'r') as f:
@@ -165,13 +169,9 @@ def data(path,output_img="output.png"):
 
         data.append(response)
 
-        # Save updated list back to file
         with open(json_detected_file, 'w') as f:
             json.dump(data, f, indent=2,ensure_ascii=False)
         return response
-
-# for i in os.listdir("docs"):
-#     print(data(f"docs/{i}"))
 
 @app.route("/",methods=["GET","POST"])
 def index():
@@ -232,7 +232,7 @@ def ocrapi():
                         html_str += format_dict_section(key.capitalize(), value)
 
                 html_str += "</div><hr><br>"
-                # Wrap each card
+
                 card_html = f"""
                 <div class="card mb-4 shadow">
                     <div class="card-body">
@@ -305,7 +305,9 @@ def allocr():
         """
         all_results_html += card_html
     return render_template("data.html",data=all_results_html)
+
 @app.route("/api_ocr_tayyab",methods=["GET","POST"])
+
 @require_auth
 def request_ocr():
     if request.method=="POST":
@@ -323,7 +325,7 @@ def request_ocr():
             logs.info("input0.json is created")
         base_64_img=base64.b64decode(request_data["base64_image"])
         filetype=pdf_extracter.detect_filetype(request_data["base64_image"])
-        print(filetype)
+
         if filetype=="PDF":
             final_response=[]
             pdf_extracter.pdf_pages_to_images_base64(request_data["base64_image"],f"data/{txn_file_name}/Assets/images_from_pdf")
@@ -352,8 +354,8 @@ def request_ocr():
                 response.update({"page":i})
                 final_response.append(response)
             return jsonify({"response":final_response}) 
+        
         else:
-            pass
             with tempfile.NamedTemporaryFile(suffix=".png",delete=False) as temp_file:
                 temp_file.write(base_64_img)
                 temp_file_path=temp_file.name
@@ -361,9 +363,11 @@ def request_ocr():
                 f.write(base_64_img)
                 logs.info("Assets Done")
             response=data(temp_file_path,f"data/{txn_file_name}/Output/boxed_output.png")
+
             with open(f"data/{txn_file_name}/Output/response0.json","w") as f:
                 json.dump(response,f,indent=2)
                 logs.info("Response0.json is created")
+
             with open(f"data/{txn_file_name}/Output/OCR_text.txt","w") as f:
                 if response["document_type"]!="other":
                     f.write("\n".join(response["ocr_result"][0]["front"]["raw_blocks"]))
@@ -371,11 +375,13 @@ def request_ocr():
                 else:
                     f.write("\n".join(response["ocr_result"][0]["raw_text"]))
                     logs.info("OCR_text Extracted (document is not detected)")
+
             if response['document_type']!="other":
                 sort_text.main(response['ocr_result'][0]['boundingbox'],response['ocr_result'][0]['front']['raw_blocks'],f"data/{txn_file_name}/Output/OCR_sort_text.txt")
             else:
                 sort_text.main(response['ocr_result'][0]['boundingbox'],response['ocr_result'][0]['raw_text'],f"data/{txn_file_name}/Output/OCR_sort_text.txt")
             logs.info("Extracted text is now sorted")
+
             return jsonify({"response":response})
 
 if __name__=="__main__":
