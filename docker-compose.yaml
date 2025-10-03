@@ -1,0 +1,12 @@
+
+services:
+  api1:
+    build:
+      context: ./API1
+    ports:
+      - "5000:5000"
+  api2:
+    build: 
+      context: ./API2
+    ports:
+      - "5001:5001"
