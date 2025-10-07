@@ -12,7 +12,7 @@ def predict_shapes(filepath):
     return pr
 for i in os.listdir("test_samples"):
     ans=predict_shapes("test_samples"+"/"+i)
-    if np.max(ans)<0.85:
+    if np.max(ans)<0.5:
         ans=-1
     else:
         ans=np.argmax(ans)
